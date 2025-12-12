@@ -311,8 +311,8 @@ class _ManageRoutesScreenState extends State<ManageRoutesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddEdit(),
-        child: const Icon(Icons.add),
         backgroundColor: Colors.teal,
+        child: const Icon(Icons.add),
       ),
       body: RefreshIndicator(
         onRefresh: _loadRoutes,
@@ -533,7 +533,7 @@ class _AddEditRouteScreenState extends State<AddEditRouteScreen> {
             ]),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: busType,
+              initialValue: busType,
               items: const [
                 DropdownMenuItem(value: 'Gold', child: Text('Gold')),
                 DropdownMenuItem(value: 'Business', child: Text('Business')),
@@ -568,8 +568,8 @@ class _AddEditRouteScreenState extends State<AddEditRouteScreen> {
               height: 48,
               child: ElevatedButton(
                 onPressed: _saving ? null : _save,
-                child: _saving ? const CircularProgressIndicator(color: Colors.white) : Text(isEdit ? 'Save Changes' : 'Add Route'),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                child: _saving ? const CircularProgressIndicator(color: Colors.white) : Text(isEdit ? 'Save Changes' : 'Add Route'),
               ),
             ),
           ]),

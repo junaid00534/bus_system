@@ -106,7 +106,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     color: Colors.lightBlue.shade50,
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(color: Colors.lightBlue.shade200, width: 1),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black12,
                         blurRadius: 6,

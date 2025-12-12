@@ -1,10 +1,12 @@
+// lib/user/screens/view_ticket_screen.dart
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:screenshot/screenshot.dart';
-
+// ignore: unnecessary_import
+import 'package:image_picker/image_picker.dart';
 class ViewTicketScreen extends StatefulWidget {
   final Map<String, dynamic> ticketData;
 
@@ -24,11 +26,33 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
   Widget build(BuildContext context) {
     final p = widget.ticketData;
 
-    final passenger = p["passenger"];
-    final bus = p["bus"];
-    final List seats = p["seats"];
-    final date = p["date"]; // date ab Map se string aayega
-    final paymentMethod = p["paymentMethod"];
+    final passenger = p["passenger"] ?? {};
+    final bus = p["bus"] ?? {};
+    final List seats = p["seats"] ?? [];
+    final date = p["date"] ?? "";
+    final paymentMethod = p["paymentMethod"] ?? "";
+
+    // helper to safely get bus properties whether bus is Map or object
+    dynamic busProp(String key) {
+      try {
+        if (bus == null) return "";
+        if (bus is Map) return bus[key] ?? "";
+        // try to access as object property using reflection-like access
+        final val = (bus as dynamic);
+        return val == null ? "" : val.toJson != null ? val.toJson()[key] ?? "" : (val as dynamic).toString();
+      } catch (e) {
+        try {
+          return (bus as dynamic).busNumber ?? "";
+        } catch (e) {
+          return "";
+        }
+      }
+    }
+
+    final busNumber = busProp('busNumber') ?? busProp('busNo') ?? busProp('bus_number') ?? '';
+    final fromCity = busProp('fromCity') ?? busProp('from') ?? '';
+    final toCity = busProp('toCity') ?? busProp('to') ?? '';
+    final time = busProp('time') ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -75,25 +99,25 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
 
                 const SizedBox(height: 20),
 
-                Text("Passenger Details",
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text("Passenger Details",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const Divider(),
 
-                ticketRow("Name", passenger["name"]),
-                ticketRow("CNIC", passenger["cnic"]),
-                ticketRow("Phone", passenger["phone"]),
+                ticketRow("Name", passenger["name"] ?? ""),
+                ticketRow("CNIC", passenger["cnic"] ?? ""),
+                ticketRow("Phone", passenger["phone"] ?? ""),
                 ticketRow("Seat(s)", seats.join(", ")),
                 ticketRow("Payment", paymentMethod),
 
                 const SizedBox(height: 20),
 
-                Text("Bus Details",
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text("Bus Details",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const Divider(),
 
-                ticketRow("Bus Number", bus.busNumber.toString()),
-                ticketRow("Route", "${bus.from} → ${bus.toCity}"),
-                ticketRow("Time", bus.time),
+                ticketRow("Bus Number", busNumber.toString()),
+                ticketRow("Route", "${fromCity} → ${toCity}"),
+                ticketRow("Time", time.toString()),
                 ticketRow("Date", date.toString()),
 
                 const SizedBox(height: 25),
@@ -133,8 +157,11 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: const TextStyle(fontSize: 16, color: Colors.black54)),
-          Text(value.toString(),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Flexible(
+            child: Text(value.toString(),
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );

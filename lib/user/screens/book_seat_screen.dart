@@ -60,12 +60,12 @@ class _BookSeatScreenState extends State<BookSeatScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.male, color: Colors.blue),
+                leading: const Icon(Icons.male, color: Colors.blue),
                 title: const Text("Male"),
                 onTap: () => Navigator.pop(context, "M"),
               ),
               ListTile(
-                leading: Icon(Icons.female, color: Colors.pink),
+                leading: const Icon(Icons.female, color: Colors.pink),
                 title: const Text("Female"),
                 onTap: () => Navigator.pop(context, "F"),
               ),

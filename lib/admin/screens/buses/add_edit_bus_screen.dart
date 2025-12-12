@@ -192,7 +192,7 @@ class _AddEditBusScreenState extends State<AddEditBusScreen> {
               const SizedBox(height: 16),
 
               DropdownButtonFormField<String>(
-                value: busClass,
+                initialValue: busClass,
                 decoration: const InputDecoration(
                     labelText: "Bus Class", border: OutlineInputBorder()),
                 items: ["Gold", "Business", "Executive"]
@@ -261,7 +261,7 @@ class _AddEditBusScreenState extends State<AddEditBusScreen> {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
         validator: required
             ? (value) =>

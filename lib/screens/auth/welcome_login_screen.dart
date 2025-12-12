@@ -1,3 +1,4 @@
+import 'package:bus_ticket_system/user/screens/cargo_tracking_screen.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeLoginScreen extends StatelessWidget {
@@ -8,7 +9,6 @@ class WelcomeLoginScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      // ==== TOP APP BAR ====
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -42,7 +42,7 @@ class WelcomeLoginScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
 
-            // ==== TOP BANNER ====
+            // ===== TOP BANNER =====
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: ClipRRect(
@@ -57,7 +57,7 @@ class WelcomeLoginScreen extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            // ==== USER CARD ====
+            // ===== USER CARD =====
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 15),
               padding: const EdgeInsets.all(15),
@@ -65,21 +65,18 @@ class WelcomeLoginScreen extends StatelessWidget {
                 color: Colors.green,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.white,
                     child: Icon(Icons.person, size: 40, color: Colors.green),
                   ),
-
-                  const SizedBox(width: 15),
-
-                  // USER INFO
+                  SizedBox(width: 15),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           "Muhammad Junaid",
                           style: TextStyle(
@@ -95,11 +92,9 @@ class WelcomeLoginScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // WALLET
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    children: const [
+                    children: [
                       Text(
                         "Wallet Balance",
                         style: TextStyle(color: Colors.white, fontSize: 12),
@@ -120,7 +115,7 @@ class WelcomeLoginScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ==== 3 MAIN FEATURES ====
+            // ===== 3 MAIN FEATURES =====
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -132,10 +127,18 @@ class WelcomeLoginScreen extends StatelessWidget {
                   },
                 ),
                 _featureButton(
-                  icon: Icons.inventory,
-                  title: "Cargo Tracking",
-                  onTap: () {},
-                ),
+  icon: Icons.inventory,
+  title: "Cargo Tracking",
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CargoTrackingScreen(), // remove 'const'
+      ),
+    );
+  },
+),
+
                 _featureButton(
                   icon: Icons.local_taxi,
                   title: "Special Booking",
@@ -149,37 +152,20 @@ class WelcomeLoginScreen extends StatelessWidget {
         ),
       ),
 
-      // ==== BOTTOM NAVIGATION ====
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.confirmation_num),
-            label: "My Ticket",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet),
-            label: "My Wallet",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.support_agent),
-            label: "Support",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.local_offer),
-            label: "Promotions",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.confirmation_num), label: "My Ticket"),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: "My Wallet"),
+          BottomNavigationBarItem(icon: Icon(Icons.support_agent), label: "Support"),
+          BottomNavigationBarItem(icon: Icon(Icons.local_offer), label: "Promotions"),
         ],
       ),
     );
   }
 
-  // ==== FEATURE BUTTON ====
   Widget _featureButton({
     required IconData icon,
     required String title,
@@ -208,10 +194,7 @@ class WelcomeLoginScreen extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ],
         ),

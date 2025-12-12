@@ -199,8 +199,8 @@ class AvailableBusesUserScreen extends StatelessWidget {
                       const SizedBox(width: 20),
 
                       if (b.refreshment)
-                        Row(
-                          children: const [
+                        const Row(
+                          children: [
                             Icon(Icons.restaurant,
                                 size: 18, color: Colors.grey),
                             SizedBox(width: 4),
