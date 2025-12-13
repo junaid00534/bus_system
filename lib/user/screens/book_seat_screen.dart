@@ -5,11 +5,13 @@ import '../../admin/models/bus_model.dart';
 class BookSeatScreen extends StatefulWidget {
   final BusModel bus;
   final DateTime selectedDate;
+  final int userId; // 👈 Add this
 
   const BookSeatScreen({
     super.key,
     required this.bus,
     required this.selectedDate,
+    required this.userId, // 👈 Receive logged-in userId
   });
 
   @override
@@ -116,9 +118,7 @@ class _BookSeatScreenState extends State<BookSeatScreen> {
 
                       // Gender priority → booked → selected → null safe
                       String gender =
-                          bookedSeatsMap[seatNum] ??
-                          seatGender[seatNum] ??
-                          "M";
+                          bookedSeatsMap[seatNum] ?? seatGender[seatNum] ?? "M";
 
                       return GestureDetector(
                         onTap: isBooked
@@ -201,7 +201,7 @@ class _BookSeatScreenState extends State<BookSeatScreen> {
                             seats: [seat.toString()],
                             gender: seatGender[seat] ?? "M",
                             date: dateKey,
-                            userId: 0,
+                            userId: widget.userId, // 👈 FIX: use real logged-in userId
                           );
                         }
 

@@ -47,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   "Login to continue",
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
-
                 const SizedBox(height: 30),
 
                 // EMAIL
@@ -61,7 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // PASSWORD
@@ -84,7 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 10),
 
                 // FORGOT PASSWORD
@@ -105,7 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 5),
 
                 // LOGIN BUTTON
@@ -147,8 +143,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
 
+                        // ✅ Pass userEmail to WelcomeLoginScreen
                         Navigator.pushReplacementNamed(
-                            context, "/welcome_login");
+                          context,
+                          "/welcome_login",
+                          arguments: {'userEmail': user['email']},
+                        );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -160,10 +160,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                 ),
-
                 const SizedBox(height: 10),
 
-                // ⭐ ADMIN LOGIN (Small & Clean)
+                // ADMIN LOGIN
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -182,7 +181,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // SIGNUP LINK
@@ -208,7 +206,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     )
                   ],
                 ),
-
                 const SizedBox(height: 50),
               ],
             ),

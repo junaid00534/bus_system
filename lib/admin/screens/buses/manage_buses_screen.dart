@@ -100,7 +100,7 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
                       color: active ? Colors.green : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.green.shade200),
-                      boxShadow: active ? null : [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                      boxShadow: active ? null : [const BoxShadow(color: Colors.black12, blurRadius: 6)],
                     ),
                     padding: const EdgeInsets.all(8),
                     child: FittedBox(
@@ -223,11 +223,11 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
                       const SizedBox(width: 12),
 
                       if (b.refreshment)
-                        Row(
+                        const Row(
                           children: [
-                            const Icon(Icons.restaurant, size: 18, color: Colors.grey),
-                            const SizedBox(width: 6),
-                            const Text("Refreshment", style: TextStyle(color: Colors.grey)),
+                            Icon(Icons.restaurant, size: 18, color: Colors.grey),
+                            SizedBox(width: 6),
+                            Text("Refreshment", style: TextStyle(color: Colors.grey)),
                           ],
                         ),
                     ],

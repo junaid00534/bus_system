@@ -1,14 +1,72 @@
-import 'package:bus_ticket_system/user/screens/cargo_tracking_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:bus_ticket_system/database/db_helper.dart';
+import 'package:bus_ticket_system/user/screens/my_tickets_screen.dart';
 
-class WelcomeLoginScreen extends StatelessWidget {
-  const WelcomeLoginScreen({super.key});
+class WelcomeLoginScreen extends StatefulWidget {
+  final String userEmail;
+
+  const WelcomeLoginScreen({super.key, required this.userEmail});
+
+  @override
+  State<WelcomeLoginScreen> createState() => _WelcomeLoginScreenState();
+}
+
+class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
+  String userName = "";
+  String userPhone = "";
+  int userId = 0;
+  bool isWalletVisible = false;
+  bool isLoading = true;
+
+  // Bottom Nav
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    final user = await DBHelper.instance.getUserByEmail(widget.userEmail);
+
+    if (user != null) {
+      setState(() {
+        userId = user['id'] as int;
+        userName = "${user['firstName']} ${user['lastName']}";
+        userPhone = user['phone'] ?? "";
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        userName = "Unknown User";
+        userPhone = "";
+        userId = 0;
+        isLoading = false;
+      });
+    }
+  }
+
+  void _goToMyTickets() {
+    if (userId == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not found. Please login again.")),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MyTicketsScreen(userId: userId, userEmail: widget.userEmail),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -36,7 +94,6 @@ class WelcomeLoginScreen extends StatelessWidget {
           SizedBox(width: 10),
         ],
       ),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -49,8 +106,9 @@ class WelcomeLoginScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
                   "assets/images/bus_welcome.png",
-                  height: 180,
-                  fit: BoxFit.cover,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
@@ -65,52 +123,63 @@ class WelcomeLoginScreen extends StatelessWidget {
                 color: Colors.green,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 40, color: Colors.green),
-                  ),
-                  SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              child: isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    )
+                  : Row(
                       children: [
-                        Text(
-                          "Muhammad Junaid",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        const CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.white,
+                          child: Icon(Icons.person, size: 40, color: Colors.green),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                userName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                userPhone,
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          "03014025346",
-                          style: TextStyle(color: Colors.white70),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isWalletVisible = !isWalletVisible;
+                            });
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const Text(
+                                "Wallet Balance",
+                                style: TextStyle(color: Colors.white, fontSize: 12),
+                              ),
+                              Text(
+                                isWalletVisible ? "0.00 PKR" : "***** PKR",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "Wallet Balance",
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                      Text(
-                        "***** PKR",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ),
 
             const SizedBox(height: 20),
@@ -127,22 +196,20 @@ class WelcomeLoginScreen extends StatelessWidget {
                   },
                 ),
                 _featureButton(
-  icon: Icons.inventory,
-  title: "Cargo Tracking",
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CargoTrackingScreen(), // remove 'const'
-      ),
-    );
-  },
-),
-
+                  icon: Icons.inventory,
+                  title: "Cargo Tracking",
+                  onTap: () {
+                    Navigator.pushNamed(context, '/cargo_tracking');
+                  },
+                ),
                 _featureButton(
                   icon: Icons.local_taxi,
                   title: "Special Booking",
-                  onTap: () {},
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Coming Soon!")),
+                    );
+                  },
                 ),
               ],
             ),
@@ -152,12 +219,38 @@ class WelcomeLoginScreen extends StatelessWidget {
         ),
       ),
 
+      // ===== BOTTOM NAVIGATION BAR =====
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
+        currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed, // important
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+
+          switch (index) {
+            case 0:
+              // Home → do nothing, already here
+              break;
+            case 1:
+              _goToMyTickets(); // My Tickets
+              break;
+            case 2:
+              // My Wallet → future logic
+              break;
+            case 3:
+              // Support → future logic
+              break;
+            case 4:
+              // Promotions → future logic
+              break;
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.confirmation_num), label: "My Ticket"),
+          BottomNavigationBarItem(icon: Icon(Icons.confirmation_num), label: "My Tickets"),
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: "My Wallet"),
           BottomNavigationBarItem(icon: Icon(Icons.support_agent), label: "Support"),
           BottomNavigationBarItem(icon: Icon(Icons.local_offer), label: "Promotions"),

@@ -1,9 +1,6 @@
-// lib/main.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
-
-// DB (for desktop FFI)
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:bus_ticket_system/database/db_helper.dart';
 
 // AUTH SCREENS
 import 'package:bus_ticket_system/screens/auth/welcome_screen.dart';
@@ -18,20 +15,21 @@ import 'package:bus_ticket_system/user/screens/book_seat_screen.dart';
 import 'package:bus_ticket_system/user/screens/passenger_detail_screen.dart';
 import 'package:bus_ticket_system/user/screens/payment_screen.dart';
 import 'package:bus_ticket_system/user/screens/view_ticket_screen.dart';
-import 'package:bus_ticket_system/user/screens/cargo_tracking_screen.dart'; // Added Cargo Tracking
+import 'package:bus_ticket_system/user/screens/my_tickets_screen.dart';
+import 'package:bus_ticket_system/user/screens/cargo_tracking_screen.dart';
 
 // ADMIN SCREENS
 import 'package:bus_ticket_system/admin/screens/admin_login_screen.dart';
 import 'package:bus_ticket_system/admin/screens/admin_dashboard_screen.dart';
 import 'package:bus_ticket_system/admin/screens/buses/manage_buses_screen.dart';
 import 'package:bus_ticket_system/admin/screens/buses/add_edit_bus_screen.dart';
-
-// ROUTE MANAGEMENT
+import 'package:bus_ticket_system/admin/screens/all_users_screen.dart';
 import 'package:bus_ticket_system/admin/screens/routes/manage_routes_screen.dart';
 import 'package:bus_ticket_system/admin/screens/routes/add_edit_route_screen.dart';
-
-// VIEW ALL BOOKINGS (admin)
 import 'package:bus_ticket_system/admin/screens/bookings/view_all_booking_screen.dart';
+
+// DB FFI for desktop
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,11 +55,18 @@ class MyApp extends StatelessWidget {
         '/welcome': (context) => WelcomeScreen(),
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignupScreen(),
-        '/welcome_login': (context) => WelcomeLoginScreen(),
+        '/welcome_login': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          String userEmail = '';
+          if (args != null && args is Map && args['userEmail'] != null) {
+            userEmail = args['userEmail'];
+          }
+          return WelcomeLoginScreen(userEmail: userEmail);
+        },
 
         // USER
         '/search_bus': (context) => SearchBusScreen(),
-        '/cargo_tracking': (context) => CargoTrackingScreen(), // Added Cargo Tracking Route
+        '/cargo_tracking': (context) => CargoTrackingScreen(),
 
         // AVAILABLE BUSES
         '/available_buses': (context) {
@@ -69,6 +74,7 @@ class MyApp extends StatelessWidget {
           return AvailableBusesUserScreen(
             buses: args['buses'],
             selectedDate: args['selectedDate'],
+            userId: args['userId'], // 👈 Added
           );
         },
 
@@ -78,6 +84,7 @@ class MyApp extends StatelessWidget {
           return BookSeatScreen(
             bus: args['bus'],
             selectedDate: args['selectedDate'],
+            userId: args['userId'], // 👈 Added
           );
         },
 
@@ -108,6 +115,15 @@ class MyApp extends StatelessWidget {
           return ViewTicketScreen(ticketData: args['ticketData']);
         },
 
+        // MY TICKETS
+        '/my_tickets': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return MyTicketsScreen(
+            userId: args['userId'],
+            userEmail: args['userEmail'],
+          );
+        },
+
         // ADMIN
         '/admin_login': (context) => AdminLoginScreen(),
         '/admin_dashboard': (context) => AdminDashboardScreen(),
@@ -128,6 +144,9 @@ class MyApp extends StatelessWidget {
             date: args['date'],
           );
         },
+
+        // ALL USERS (admin)
+        '/all_users': (context) => const AllUsersScreen(),
       },
 
       onUnknownRoute: (settings) {

@@ -113,7 +113,6 @@ class DBHelper {
       );
     ''');
 
-    // ---------------- PAYMENT TABLE ----------------
     await db.execute('''
       CREATE TABLE IF NOT EXISTS payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -266,6 +265,17 @@ class DBHelper {
   }
 
   // ============================================================
+  // GET ALL USERS  <-- Added here
+  // ============================================================
+  Future<List<UserModel>> getAllUsers() async {
+    final db = await database;
+    final result = await db.query('users', orderBy: "id ASC");
+    return result.map((map) => UserModel.fromMap(map)).toList();
+  }
+
+  
+
+  // ============================================================
   // USER-SIDE BUS SEARCH
   // ============================================================
   Future<List<Map<String, dynamic>>> getBusesByRoute(
@@ -325,8 +335,52 @@ class DBHelper {
     await batch.commit(noResult: true);
   }
 
+  // ====================== MY TICKETS FUNCTIONS ======================
+  Future<List<Map<String, dynamic>>> getUserBookings(int userId) async {
+    final db = await database;
+
+    return await db.rawQuery('''
+      SELECT 
+        bk.id AS bookingId,
+        bk.seatNumber,
+        bk.gender AS passengerGender,
+        bk.bookingDate,
+        bk.status,
+        bus.busName,
+        bus.fromCity,
+        bus.toCity,
+        bus.routeVia,
+        bus.date AS travelDate,
+        bus.time,
+        bus.busClass,
+        bus.fare,
+        bus.originalFare,
+        bus.discount,
+        bus.refreshment
+      FROM bookings bk
+      INNER JOIN buses bus ON bk.busId = bus.id
+      WHERE bk.userId = ?
+      ORDER BY bk.bookingDate DESC
+    ''', [userId]);
+  }
+
+  Future<bool> cancelBooking(int bookingId, int userId) async {
+    final db = await database;
+
+    final check = await db.query(
+      'bookings',
+      where: 'id = ? AND userId = ? AND status = ?',
+      whereArgs: [bookingId, userId, 'booked'],
+    );
+
+    if (check.isEmpty) return false;
+
+    await db.delete('bookings', where: 'id = ? AND userId = ?', whereArgs: [bookingId, userId]);
+    return true;
+  }
+
   // ============================================================
-  // INSERT PAYMENT  (✔ MATCHES PaymentScreen)
+  // INSERT PAYMENT
   // ============================================================
   Future<int> insertPayment({
     required int busId,

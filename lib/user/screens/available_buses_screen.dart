@@ -5,11 +5,13 @@ import 'book_seat_screen.dart';
 class AvailableBusesUserScreen extends StatelessWidget {
   final List<BusModel> buses;
   final DateTime selectedDate;
+  final int userId; // 👈 Add userId here
 
   const AvailableBusesUserScreen({
     super.key,
     required this.buses,
     required this.selectedDate,
+    required this.userId, // 👈 Required userId
   });
 
   String formatDate(DateTime d) {
@@ -98,7 +100,7 @@ class AvailableBusesUserScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     itemCount: buses.length,
                     itemBuilder: (context, index) {
-                      return _ticketCard(context, buses[index]);
+                      return _ticketCard(context, buses[index], userId);
                     },
                   ),
           ),
@@ -107,7 +109,10 @@ class AvailableBusesUserScreen extends StatelessWidget {
     );
   }
 
-  Widget _ticketCard(BuildContext context, BusModel b) {
+  // ===========================
+  // Ticket Card
+  // ===========================
+  Widget _ticketCard(BuildContext context, BusModel b, int userId) {
     final int bookedSeats = b.bookedSeats;
     final int seatsLeft = b.seats - bookedSeats;
 
@@ -128,8 +133,7 @@ class AvailableBusesUserScreen extends StatelessWidget {
                 children: [
                   // TIME BOX
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.green.shade50,
                       borderRadius: BorderRadius.circular(10),
@@ -142,9 +146,7 @@ class AvailableBusesUserScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   // FROM CITY
                   Row(
                     children: [
@@ -159,7 +161,6 @@ class AvailableBusesUserScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   Padding(
                     padding: const EdgeInsets.only(left: 18),
                     child: Text(
@@ -167,13 +168,10 @@ class AvailableBusesUserScreen extends StatelessWidget {
                       style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                   ),
-
                   const SizedBox(height: 4),
-
                   Row(
                     children: [
-                      const Icon(Icons.location_on,
-                          size: 16, color: Colors.green),
+                      const Icon(Icons.location_on, size: 16, color: Colors.green),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -184,30 +182,24 @@ class AvailableBusesUserScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 10),
-
                   Row(
                     children: [
-                      const Icon(Icons.event_seat,
-                          size: 18, color: Colors.grey),
+                      const Icon(Icons.event_seat, size: 18, color: Colors.grey),
                       const SizedBox(width: 4),
                       Text(
                         "Seats Left  $seatsLeft",
                         style: const TextStyle(fontSize: 13, color: Colors.grey),
                       ),
                       const SizedBox(width: 20),
-
                       if (b.refreshment)
                         const Row(
                           children: [
-                            Icon(Icons.restaurant,
-                                size: 18, color: Colors.grey),
+                            Icon(Icons.restaurant, size: 18, color: Colors.grey),
                             SizedBox(width: 4),
                             Text(
                               "Refreshment",
-                              style:
-                                  TextStyle(fontSize: 13, color: Colors.grey),
+                              style: TextStyle(fontSize: 13, color: Colors.grey),
                             ),
                           ],
                         ),
@@ -250,37 +242,29 @@ class AvailableBusesUserScreen extends StatelessWidget {
                 children: [
                   if (b.discountLabel.isNotEmpty)
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         b.discountLabel,
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 12),
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ),
-
                   const SizedBox(height: 6),
-
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.amber.shade400,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       b.busClass,
-                      style: const TextStyle(
-                          color: Colors.black, fontSize: 12),
+                      style: const TextStyle(color: Colors.black, fontSize: 12),
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(
                     "PKR ${b.fare.toStringAsFixed(0)}",
                     style: const TextStyle(
@@ -289,7 +273,6 @@ class AvailableBusesUserScreen extends StatelessWidget {
                       color: Colors.green,
                     ),
                   ),
-
                   if (b.originalFare > b.fare)
                     Text(
                       "PKR ${b.originalFare.toStringAsFixed(0)}",
@@ -298,9 +281,7 @@ class AvailableBusesUserScreen extends StatelessWidget {
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
-
                   const SizedBox(height: 12),
-
                   SizedBox(
                     width: 120,
                     height: 38,
@@ -316,7 +297,8 @@ class AvailableBusesUserScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) => BookSeatScreen(
                               bus: b,
-                              selectedDate: selectedDate, // ✔ FIXED
+                              selectedDate: selectedDate,
+                              userId: userId, // 👈 Pass logged-in userId
                             ),
                           ),
                         );

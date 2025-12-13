@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'all_users_screen.dart'; // yahan relative import adjust karein agar path alag ho
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -25,8 +26,9 @@ class AdminDashboardScreen extends StatelessWidget {
         'icon': Icons.people,
         'title': 'All Users',
         'onTap': () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Users list coming soon!")),
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AllUsersScreen()),
           );
         },
       },
@@ -63,7 +65,7 @@ class AdminDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // ===== GRID STYLE CARDS LIKE USER SCREEN =====
+            // ===== GRID STYLE CARDS =====
             Wrap(
               spacing: 15,
               runSpacing: 15,

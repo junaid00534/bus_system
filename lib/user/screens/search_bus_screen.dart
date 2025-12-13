@@ -52,7 +52,7 @@ class _SearchBusScreenState extends State<SearchBusScreen> {
     }
   }
 
-  searchBus() async {
+  searchBus(int userId) async {
     final from = fromController.text.trim();
     final to = toController.text.trim();
 
@@ -61,24 +61,30 @@ class _SearchBusScreenState extends State<SearchBusScreen> {
     // Get raw data from DB (List<Map>)
     final rawBuses = await db.getBusesByRoute(from, to);
 
-    // FIX: Convert to List<BusModel>
+    // Convert to List<BusModel>
     final List<BusModel> buses =
         rawBuses.map((e) => BusModel.fromMap(e)).toList();
 
     // Navigate
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AvailableBusesUserScreen(
-          buses: buses,
-          selectedDate: selectedDate!,
+    if (selectedDate != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AvailableBusesUserScreen(
+            buses: buses,
+            selectedDate: selectedDate!,
+            userId: userId, // 👈 Pass the logged-in userId
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Example: Replace with actual logged-in userId
+    final int currentUserId = 1;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -168,7 +174,7 @@ class _SearchBusScreenState extends State<SearchBusScreen> {
                     return;
                   }
 
-                  searchBus();
+                  searchBus(currentUserId); // 👈 Pass userId here
                 },
                 child: const Text("Search Bus", style: TextStyle(fontSize: 18)),
               ),
