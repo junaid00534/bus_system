@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'all_users_screen.dart'; // yahan relative import adjust karein agar path alag ho
+import 'all_users_screen.dart'; // adjust path if needed
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -31,6 +31,16 @@ class AdminDashboardScreen extends StatelessWidget {
             MaterialPageRoute(builder: (_) => const AllUsersScreen()),
           );
         },
+      },
+      {
+        'icon': Icons.feedback,
+        'title': 'Feedbacks',
+        'onTap': () => Navigator.pushNamed(context, '/admin_feedbacks'),
+      },
+      {
+        'icon': Icons.report_problem,
+        'title': 'Complains',
+        'onTap': () => Navigator.pushNamed(context, '/admin_complains'),
       },
     ];
 
@@ -65,7 +75,6 @@ class AdminDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // ===== GRID STYLE CARDS =====
             Wrap(
               spacing: 15,
               runSpacing: 15,

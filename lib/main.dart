@@ -17,6 +17,11 @@ import 'package:bus_ticket_system/user/screens/payment_screen.dart';
 import 'package:bus_ticket_system/user/screens/view_ticket_screen.dart';
 import 'package:bus_ticket_system/user/screens/my_tickets_screen.dart';
 import 'package:bus_ticket_system/user/screens/cargo_tracking_screen.dart';
+import 'package:bus_ticket_system/user/screens/support_screen.dart';
+
+// WALLET SCREENS
+import 'package:bus_ticket_system/user/screens/my_wallet_screen.dart';
+import 'package:bus_ticket_system/user/screens/topup_wallet_screen.dart';
 
 // ADMIN SCREENS
 import 'package:bus_ticket_system/admin/screens/admin_login_screen.dart';
@@ -27,6 +32,10 @@ import 'package:bus_ticket_system/admin/screens/all_users_screen.dart';
 import 'package:bus_ticket_system/admin/screens/routes/manage_routes_screen.dart';
 import 'package:bus_ticket_system/admin/screens/routes/add_edit_route_screen.dart';
 import 'package:bus_ticket_system/admin/screens/bookings/view_all_booking_screen.dart';
+
+// ✅ NEW SEPARATE SCREENS
+import 'package:bus_ticket_system/admin/screens/admin_feedback_screen.dart';
+import 'package:bus_ticket_system/admin/screens/admin_complains_screen.dart';
 
 // DB FFI for desktop
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -39,22 +48,23 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Bus Ticket System',
       initialRoute: '/welcome',
-
       routes: {
-        // AUTH
-        '/welcome': (context) => WelcomeScreen(),
-        '/login': (context) => LoginScreen(),
-        '/signup': (context) => SignupScreen(),
+        // ================= AUTH =================
+        '/welcome': (context) => const WelcomeScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
         '/welcome_login': (context) {
           final args = ModalRoute.of(context)?.settings.arguments;
           String userEmail = '';
@@ -64,31 +74,25 @@ class MyApp extends StatelessWidget {
           return WelcomeLoginScreen(userEmail: userEmail);
         },
 
-        // USER
-        '/search_bus': (context) => SearchBusScreen(),
-        '/cargo_tracking': (context) => CargoTrackingScreen(),
-
-        // AVAILABLE BUSES
+        // ================= USER =================
+        '/search_bus': (context) => const SearchBusScreen(),
+        '/cargo_tracking': (context) => const CargoTrackingScreen(),
         '/available_buses': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return AvailableBusesUserScreen(
             buses: args['buses'],
             selectedDate: args['selectedDate'],
-            userId: args['userId'], // 👈 Added
+            userId: args['userId'],
           );
         },
-
-        // BOOK SEAT
         '/book_seat': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return BookSeatScreen(
             bus: args['bus'],
             selectedDate: args['selectedDate'],
-            userId: args['userId'], // 👈 Added
+            userId: args['userId'],
           );
         },
-
-        // PASSENGER DETAILS
         '/passenger_details': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return PassengerDetailScreen(
@@ -97,8 +101,6 @@ class MyApp extends StatelessWidget {
             date: args['date'],
           );
         },
-
-        // PAYMENT SCREEN
         '/payment': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return PaymentScreen(
@@ -108,14 +110,10 @@ class MyApp extends StatelessWidget {
             passengerData: args['passengerData'],
           );
         },
-
-        // FINAL TICKET VIEW
         '/view_ticket': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return ViewTicketScreen(ticketData: args['ticketData']);
         },
-
-        // MY TICKETS
         '/my_tickets': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return MyTicketsScreen(
@@ -124,17 +122,25 @@ class MyApp extends StatelessWidget {
           );
         },
 
-        // ADMIN
-        '/admin_login': (context) => AdminLoginScreen(),
-        '/admin_dashboard': (context) => AdminDashboardScreen(),
-        '/manage_buses': (context) => ManageBusesScreen(),
+        // ================= WALLET =================
+        '/my_wallet': (context) => const MyWalletScreen(),
+        '/topup_wallet': (context) => const TopupWalletScreen(),
 
-        // ROUTES
-        '/manage_routes': (context) => ManageRoutesScreen(),
-        '/add_edit_route': (context) => AddEditRouteScreen(),
-        '/add_edit_bus': (context) => AddEditBusScreen(),
+        // ================= SUPPORT =================
+        '/support': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+          return SupportScreen(
+            userId: args['userId'] ?? 0,
+          );
+        },
 
-        // VIEW ALL BOOKINGS (admin)
+        // ================= ADMIN =================
+        '/admin_login': (context) => const AdminLoginScreen(),
+        '/admin_dashboard': (context) => const AdminDashboardScreen(),
+        '/manage_buses': (context) => const ManageBusesScreen(),
+        '/manage_routes': (context) => const ManageRoutesScreen(),
+        '/add_edit_route': (context) => const AddEditRouteScreen(),
+        '/add_edit_bus': (context) => const AddEditBusScreen(),
         '/view_all_booking': (context) {
           final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
           return ViewAllBookingScreen(
@@ -144,14 +150,15 @@ class MyApp extends StatelessWidget {
             date: args['date'],
           );
         },
-
-        // ALL USERS (admin)
         '/all_users': (context) => const AllUsersScreen(),
-      },
 
+        // ✅ NEW SEPARATE ROUTES
+        '/admin_feedbacks': (context) => const AdminFeedbackScreen(),
+        '/admin_complains': (context) => const AdminComplainsScreen(),
+      },
       onUnknownRoute: (settings) {
         return MaterialPageRoute(
-          builder: (context) => Scaffold(
+          builder: (context) => const Scaffold(
             body: Center(
               child: Text(
                 '404 - Page Not Found',

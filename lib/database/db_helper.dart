@@ -34,7 +34,7 @@ class DBHelper {
     return await databaseFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 10,
+        version: 11,
         onCreate: _createDB,
         onUpgrade: _onUpgrade,
       ),
@@ -128,19 +128,50 @@ class DBHelper {
         email TEXT
       );
     ''');
+
+    // ================== NEW TABLES ==================
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER,
+        message TEXT,
+        date TEXT
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS complain (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER,
+        message TEXT,
+        date TEXT
+      );
+    ''');
   }
 
   // ============================================================
   // ON UPGRADE
   // ============================================================
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    await db.execute('DROP TABLE IF EXISTS bookings');
-    await db.execute('DROP TABLE IF EXISTS buses');
-    await db.execute('DROP TABLE IF EXISTS routes');
-    await db.execute('DROP TABLE IF EXISTS users');
-    await db.execute('DROP TABLE IF EXISTS payments');
+    if (oldVersion < 11) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS feedback (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          userId INTEGER,
+          message TEXT,
+          date TEXT
+        );
+      ''');
 
-    await _createDB(db, newVersion);
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS complain (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          userId INTEGER,
+          message TEXT,
+          date TEXT
+        );
+      ''');
+    }
   }
 
   // ============================================================
@@ -148,7 +179,6 @@ class DBHelper {
   // ============================================================
   Future<int> insertRoute(Map<String, dynamic> route) async {
     final db = await database;
-
     return await db.insert('routes', {
       "busNo": route["busNo"],
       "fromCity": route["fromCity"],
@@ -173,7 +203,6 @@ class DBHelper {
 
   Future<int> updateRoute(int id, Map<String, dynamic> data) async {
     final db = await database;
-
     return await db.update(
       'routes',
       data,
@@ -197,7 +226,6 @@ class DBHelper {
 
   Future<List<Map<String, dynamic>>> getBusesByDate(String dateKey) async {
     final db = await database;
-
     return await db.query(
       'buses',
       where: 'date=?',
@@ -208,7 +236,6 @@ class DBHelper {
 
   Future<void> updateBus(int id, BusModel bus) async {
     final db = await database;
-
     await db.update(
       "buses",
       bus.toMap(),
@@ -227,7 +254,6 @@ class DBHelper {
   // ============================================================
   Future<void> registerUser(UserModel user) async {
     final db = await database;
-
     await db.insert(
       'users',
       user.toMap(),
@@ -237,13 +263,11 @@ class DBHelper {
 
   Future<dynamic> loginUser(String email, String pass) async {
     final db = await database;
-
     final result = await db.query(
       'users',
       where: 'email = ? AND password = ?',
       whereArgs: [email, pass],
     );
-
     return result.isNotEmpty ? result.first : null;
   }
 
@@ -255,7 +279,6 @@ class DBHelper {
 
   Future<void> updatePassword(String email, String pass) async {
     final db = await database;
-
     await db.update(
       'users',
       {"password": pass},
@@ -264,16 +287,11 @@ class DBHelper {
     );
   }
 
-  // ============================================================
-  // GET ALL USERS  <-- Added here
-  // ============================================================
   Future<List<UserModel>> getAllUsers() async {
     final db = await database;
     final result = await db.query('users', orderBy: "id ASC");
     return result.map((map) => UserModel.fromMap(map)).toList();
   }
-
-  
 
   // ============================================================
   // USER-SIDE BUS SEARCH
@@ -335,7 +353,6 @@ class DBHelper {
     await batch.commit(noResult: true);
   }
 
-  // ====================== MY TICKETS FUNCTIONS ======================
   Future<List<Map<String, dynamic>>> getUserBookings(int userId) async {
     final db = await database;
 
@@ -380,7 +397,7 @@ class DBHelper {
   }
 
   // ============================================================
-  // INSERT PAYMENT
+  // PAYMENTS
   // ============================================================
   Future<int> insertPayment({
     required int busId,
@@ -389,7 +406,6 @@ class DBHelper {
     required String passengerEmail,
     required String paymentMethod,
     required String accountNumber,
-
     String? date,
     double? amount,
     String? passengerCnic,
@@ -400,14 +416,11 @@ class DBHelper {
     return await db.insert("payments", {
       "busId": busId,
       "seats": seats.join(","),
-
       "amount": amount ?? 0.0,
       "date": date ?? DateTime.now().toString(),
-
       "passengerName": passengerName,
       "passengerCnic": passengerCnic ?? "",
       "passengerPhone": passengerPhone ?? "",
-
       "paymentMethod": paymentMethod,
       "accountNumber": accountNumber,
       "email": passengerEmail,
@@ -425,4 +438,52 @@ class DBHelper {
 
     return result.isNotEmpty ? result.first : null;
   }
+
+  // ============================================================
+  // FEEDBACK FUNCTIONS
+  // ============================================================
+  Future<int> insertFeedback({required int userId, required String message}) async {
+    final db = await database;
+
+    return await db.insert('feedback', {
+      "userId": userId,
+      "message": message,
+      "date": DateTime.now().toString(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getFeedbacks() async {
+    final db = await database;
+    return await db.query('feedback', orderBy: "id DESC");
+  }
+
+  // Wrapper for admin screen
+  Future<List<Map<String, dynamic>>> getAllFeedbacks() async {
+    return await getFeedbacks();
+  }
+
+  // ============================================================
+  // COMPLAIN FUNCTIONS
+  // ============================================================
+  Future<int> insertComplain({required int userId, required String message}) async {
+    final db = await database;
+
+    return await db.insert('complain', {
+      "userId": userId,
+      "message": message,
+      "date": DateTime.now().toString(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getComplains() async {
+    final db = await database;
+    return await db.query('complain', orderBy: "id DESC");
+  }
+
+  // Wrapper for admin screen
+  Future<List<Map<String, dynamic>>> getAllComplains() async {
+    return await getComplains();
+  }
+
+  Future<void> insertSupportMessage({required String type, required String message}) async {}
 }

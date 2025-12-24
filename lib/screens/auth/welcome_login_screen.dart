@@ -18,7 +18,6 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
   bool isWalletVisible = false;
   bool isLoading = true;
 
-  // Bottom Nav
   int _currentIndex = 0;
 
   @override
@@ -58,8 +57,23 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MyTicketsScreen(userId: userId, userEmail: widget.userEmail),
+        builder: (_) => MyTicketsScreen(
+          userId: userId,
+          userEmail: widget.userEmail,
+        ),
       ),
+    );
+  }
+
+  void _goToMyWallet() {
+    Navigator.pushNamed(context, '/my_wallet');
+  }
+
+  void _goToSupport() {
+    Navigator.pushNamed(
+      context,
+      '/support',
+      arguments: {'userId': userId}, // ✅ userId pass
     );
   }
 
@@ -67,6 +81,8 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
+      // ================= APP BAR =================
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -74,10 +90,7 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              "assets/images/bus_welcome.png",
-              height: 40,
-            ),
+            Image.asset("assets/images/bus_welcome.png", height: 40),
             const SizedBox(width: 8),
             const Text(
               "JUNAID MOVERS",
@@ -94,12 +107,14 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
           SizedBox(width: 10),
         ],
       ),
+
+      // ================= BODY =================
       body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 10),
 
-            // ===== TOP BANNER =====
+            // TOP BANNER
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: ClipRRect(
@@ -115,7 +130,7 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
 
             const SizedBox(height: 15),
 
-            // ===== USER CARD =====
+            // USER CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 15),
               padding: const EdgeInsets.all(15),
@@ -132,7 +147,8 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
                         const CircleAvatar(
                           radius: 30,
                           backgroundColor: Colors.white,
-                          child: Icon(Icons.person, size: 40, color: Colors.green),
+                          child: Icon(Icons.person,
+                              size: 40, color: Colors.green),
                         ),
                         const SizedBox(width: 15),
                         Expanded(
@@ -154,25 +170,36 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
                             ],
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isWalletVisible = !isWalletVisible;
-                            });
-                          },
+
+                        // WALLET (clickable)
+                        InkWell(
+                          onTap: _goToMyWallet,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               const Text(
-                                "Wallet Balance",
-                                style: TextStyle(color: Colors.white, fontSize: 12),
-                              ),
-                              Text(
-                                isWalletVisible ? "0.00 PKR" : "***** PKR",
-                                style: const TextStyle(
+                                "My Wallet",
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 16,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    isWalletVisible = !isWalletVisible;
+                                  });
+                                },
+                                child: Text(
+                                  isWalletVisible
+                                      ? "0.00 PKR"
+                                      : "***** PKR",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
@@ -184,7 +211,7 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
 
             const SizedBox(height: 20),
 
-            // ===== 3 MAIN FEATURES =====
+            // MAIN FEATURES
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -219,12 +246,12 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
         ),
       ),
 
-      // ===== BOTTOM NAVIGATION BAR =====
+      // ================= BOTTOM NAV =================
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
         currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed, // important
+        type: BottomNavigationBarType.fixed,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -232,28 +259,33 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
 
           switch (index) {
             case 0:
-              // Home → do nothing, already here
-              break;
+              break; // Home
             case 1:
-              _goToMyTickets(); // My Tickets
+              _goToMyTickets();
               break;
             case 2:
-              // My Wallet → future logic
+              _goToMyWallet();
               break;
             case 3:
-              // Support → future logic
+              _goToSupport(); // ✅ Corrected
               break;
             case 4:
-              // Promotions → future logic
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Promotions coming soon")),
+              );
               break;
           }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.confirmation_num), label: "My Tickets"),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: "My Wallet"),
-          BottomNavigationBarItem(icon: Icon(Icons.support_agent), label: "Support"),
-          BottomNavigationBarItem(icon: Icon(Icons.local_offer), label: "Promotions"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.confirmation_num), label: "My Tickets"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance_wallet), label: "My Wallet"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.support_agent), label: "Support"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.local_offer), label: "Promotions"),
         ],
       ),
     );
@@ -287,7 +319,8 @@ class _WelcomeLoginScreenState extends State<WelcomeLoginScreen> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              style:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ],
         ),
