@@ -19,6 +19,10 @@ import 'package:bus_ticket_system/user/screens/my_tickets_screen.dart';
 import 'package:bus_ticket_system/user/screens/cargo_tracking_screen.dart';
 import 'package:bus_ticket_system/user/screens/support_screen.dart';
 
+// ACCOUNT SCREENS
+import 'package:bus_ticket_system/user/screens/my_account_screen.dart';
+import 'package:bus_ticket_system/user/screens/edit_basic_info_screen.dart'; // Single all-in-one edit screen
+
 // WALLET SCREENS
 import 'package:bus_ticket_system/user/screens/my_wallet_screen.dart';
 import 'package:bus_ticket_system/user/screens/topup_wallet_screen.dart';
@@ -33,7 +37,7 @@ import 'package:bus_ticket_system/admin/screens/routes/manage_routes_screen.dart
 import 'package:bus_ticket_system/admin/screens/routes/add_edit_route_screen.dart';
 import 'package:bus_ticket_system/admin/screens/bookings/view_all_booking_screen.dart';
 
-// ✅ NEW SEPARATE SCREENS
+// NEW ADMIN SCREENS
 import 'package:bus_ticket_system/admin/screens/admin_feedback_screen.dart';
 import 'package:bus_ticket_system/admin/screens/admin_complains_screen.dart';
 
@@ -129,8 +133,22 @@ class MyApp extends StatelessWidget {
         // ================= SUPPORT =================
         '/support': (context) {
           final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
-          return SupportScreen(
-            userId: args['userId'] ?? 0,
+          return SupportScreen(userId: args['userId'] ?? 0);
+        },
+
+        // ================= ACCOUNT SCREENS =================
+        '/my_account': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return MyAccountScreen(
+            userId: args['userId'],
+            userEmail: args['userEmail'],
+          );
+        },
+        '/edit_basic_info': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return EditBasicInfoScreen(
+            userId: args['userId'],
+            userEmail: args['userEmail'],
           );
         },
 
@@ -152,7 +170,7 @@ class MyApp extends StatelessWidget {
         },
         '/all_users': (context) => const AllUsersScreen(),
 
-        // ✅ NEW SEPARATE ROUTES
+        // NEW ADMIN ROUTES
         '/admin_feedbacks': (context) => const AdminFeedbackScreen(),
         '/admin_complains': (context) => const AdminComplainsScreen(),
       },
@@ -160,10 +178,7 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(
           builder: (context) => const Scaffold(
             body: Center(
-              child: Text(
-                '404 - Page Not Found',
-                style: TextStyle(fontSize: 24),
-              ),
+              child: Text('404 - Page Not Found', style: TextStyle(fontSize: 24)),
             ),
           ),
         );

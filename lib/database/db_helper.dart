@@ -34,7 +34,7 @@ class DBHelper {
     return await databaseFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 11,
+        version: 12,
         onCreate: _createDB,
         onUpgrade: _onUpgrade,
       ),
@@ -54,7 +54,11 @@ class DBHelper {
         phone TEXT,
         cnic TEXT,
         gender TEXT,
-        password TEXT
+        password TEXT,
+        street TEXT,
+        city TEXT,
+        region TEXT,
+        zip TEXT
       );
     ''');
 
@@ -172,6 +176,12 @@ class DBHelper {
         );
       ''');
     }
+    if (oldVersion < 12) {
+      await db.execute('ALTER TABLE users ADD COLUMN street TEXT;');
+      await db.execute('ALTER TABLE users ADD COLUMN city TEXT;');
+      await db.execute('ALTER TABLE users ADD COLUMN region TEXT;');
+      await db.execute('ALTER TABLE users ADD COLUMN zip TEXT;');
+    }
   }
 
   // ============================================================
@@ -277,6 +287,12 @@ class DBHelper {
     return result.isNotEmpty ? result.first : null;
   }
 
+  Future<Map<String, dynamic>?> getUserById(int id) async {
+    final db = await database;
+    final result = await db.query('users', where: 'id=?', whereArgs: [id]);
+    return result.isNotEmpty ? result.first : null;
+  }
+
   Future<void> updatePassword(String email, String pass) async {
     final db = await database;
     await db.update(
@@ -285,6 +301,19 @@ class DBHelper {
       where: "email=?",
       whereArgs: [email],
     );
+  }
+
+  Future<void> updateUser(int id, Map<String, dynamic> data) async {
+    final db = await database;
+    await db.update('users', data, where: 'id=?', whereArgs: [id]);
+  }
+
+  Future<void> deleteUser(int id) async {
+    final db = await database;
+    await db.delete('users', where: 'id=?', whereArgs: [id]);
+    await db.delete('bookings', where: 'userId=?', whereArgs: [id]);
+    await db.delete('feedback', where: 'userId=?', whereArgs: [id]);
+    await db.delete('complain', where: 'userId=?', whereArgs: [id]);
   }
 
   Future<List<UserModel>> getAllUsers() async {
