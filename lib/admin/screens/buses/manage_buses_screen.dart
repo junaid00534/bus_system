@@ -15,6 +15,9 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
   List<DateTime> next10Days = [];
   List<BusModel> buses = [];
 
+  // ہر بس کے لیے live booked seats count
+  Map<int, int> bookedSeatsCount = {};
+
   @override
   void initState() {
     super.initState();
@@ -31,9 +34,21 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
 
     final list = await DBHelper.instance.getBusesByDate(dateKey);
 
-    setState(() {
-      buses = list.map((e) => BusModel.fromMap(e)).toList();
-    });
+    final loadedBuses = list.map((e) => BusModel.fromMap(e)).toList();
+
+    // Booked seats count نکالیں
+    Map<int, int> tempCount = {};
+    for (var bus in loadedBuses) {
+      final bookedList = await DBHelper.instance.getBookedSeatsWithGender(bus.id!);
+      tempCount[bus.id!] = bookedList.length;
+    }
+
+    if (mounted) {
+      setState(() {
+        buses = loadedBuses;
+        bookedSeatsCount = tempCount;
+      });
+    }
   }
 
   String _formatDate(DateTime dt) {
@@ -155,9 +170,15 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
   }
 
   // -------------------------------------------------------------------
-  //                           FIXED BUS CARD
+  //                           UPDATED BUS CARD WITH LIVE SEATS
   // -------------------------------------------------------------------
   Widget _busCard(BusModel b) {
+    final int booked = bookedSeatsCount[b.id!] ?? 0;
+    final int seatsLeft = b.seats - booked;
+
+    // اگر سیٹیں ختم ہو گئیں تو رنگ سرخ کریں
+    final Color seatsTextColor = seatsLeft <= 0 ? Colors.red : Colors.grey;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -166,7 +187,6 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ---------------- LEFT SIDE ----------------
             Expanded(
               child: Column(
@@ -182,9 +202,7 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
                         ),
                         child: Text(b.time, style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
-
                       const SizedBox(width: 10),
-
                       Expanded(
                         child: Text(
                           b.busNumber,
@@ -194,35 +212,29 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(b.fromCity,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.bold)),
-
                   const SizedBox(height: 4),
-
                   Text("Via ${b.routeVia}",
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.grey)),
-
                   const SizedBox(height: 4),
-
                   Text(b.toCity,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.bold)),
-
                   const SizedBox(height: 8),
-
                   Wrap(
                     children: [
-                      const Icon(Icons.event_seat, size: 18, color: Colors.grey),
+                      const Icon(Icons.event_seat, size: 18),
                       const SizedBox(width: 6),
-                      Text("Seats Left ${b.seats}", style: const TextStyle(color: Colors.grey)),
+                      Text(
+                        "Seats Left $seatsLeft",
+                        style: TextStyle(color: seatsTextColor, fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(width: 12),
-
-                      if (b.refreshment)
+                      if (b.refreshment == 1 || b.refreshment == true)
                         const Row(
                           children: [
                             Icon(Icons.restaurant, size: 18, color: Colors.grey),
@@ -256,16 +268,13 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
                         style: const TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ),
-
                   const SizedBox(height: 6),
-
                   Text(
                     "PKR ${b.fare.toStringAsFixed(0)}",
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
                   ),
-
                   if (b.originalFare > b.fare)
                     Text(
                       "PKR ${b.originalFare.toStringAsFixed(0)}",
@@ -274,9 +283,7 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
-
                   const SizedBox(height: 10),
-
                   SizedBox(
                     height: 34,
                     child: ElevatedButton(
@@ -294,7 +301,6 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
                       child: const Text("Edit", style: TextStyle(color: Colors.white)),
                     ),
                   ),
-
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () async {
@@ -302,7 +308,7 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           title: const Text("Delete Bus"),
-                          content: const Text("Are you sure you want to delete this bus?"),
+                          content: const Text("Are you sure you want to delete this bus?\nThis will NOT delete already booked tickets."),
                           actions: [
                             TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),

@@ -42,7 +42,7 @@ class DBHelper {
   }
 
   // ============================================================
-  // CREATE TABLES
+  // CREATE TABLES (No change)
   // ============================================================
   Future _createDB(Database db, int version) async {
     await db.execute('''
@@ -133,7 +133,6 @@ class DBHelper {
       );
     ''');
 
-    // ================== NEW TABLES ==================
     await db.execute('''
       CREATE TABLE IF NOT EXISTS feedback (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,7 +153,7 @@ class DBHelper {
   }
 
   // ============================================================
-  // ON UPGRADE
+  // ON UPGRADE (No change)
   // ============================================================
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 11) {
@@ -185,7 +184,46 @@ class DBHelper {
   }
 
   // ============================================================
-  // ROUTES CRUD
+  // NEW: CLEAN OLD BUSES AND THEIR BOOKINGS
+  // Deletes buses older than today and all related bookings
+  // ============================================================
+  Future<void> cleanOldBusesAndBookings() async {
+    final db = await database;
+
+    final today = DateTime.now();
+    final todayStr = "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+
+    // Get all old buses (date < today)
+    final oldBuses = await db.query(
+      'buses',
+      where: 'date < ?',
+      whereArgs: [todayStr],
+    );
+
+    if (oldBuses.isEmpty) return;
+
+    // Collect all old bus IDs
+    final List<int> oldBusIds = oldBuses.map((bus) => bus['id'] as int).toList();
+
+    // Delete related bookings
+    await db.delete(
+      'bookings',
+      where: 'busId IN (${oldBusIds.map((_) => '?').join(',')})',
+      whereArgs: oldBusIds,
+    );
+
+    // Delete old buses
+    await db.delete(
+      'buses',
+      where: 'id IN (${oldBusIds.map((_) => '?').join(',')})',
+      whereArgs: oldBusIds,
+    );
+
+    print('Cleaned ${oldBuses.length} old buses and their bookings');
+  }
+
+  // ============================================================
+  // ROUTES CRUD (No change)
   // ============================================================
   Future<int> insertRoute(Map<String, dynamic> route) async {
     final db = await database;
@@ -227,7 +265,7 @@ class DBHelper {
   }
 
   // ============================================================
-  // BUSES CRUD
+  // BUSES CRUD (No change)
   // ============================================================
   Future<void> insertBus(BusModel bus) async {
     final db = await database;
@@ -260,7 +298,7 @@ class DBHelper {
   }
 
   // ============================================================
-  // USER AUTH
+  // USER AUTH (No change)
   // ============================================================
   Future<void> registerUser(UserModel user) async {
     final db = await database;
@@ -323,29 +361,60 @@ class DBHelper {
   }
 
   // ============================================================
-  // USER-SIDE BUS SEARCH
+  // NEW: GET ALL UNIQUE FROM CITIES
   // ============================================================
-  Future<List<Map<String, dynamic>>> getBusesByRoute(
-      String from, String to) async {
+  Future<List<String>> getAllFromCities() async {
     final db = await database;
-
-    return await db.rawQuery(
-      '''
-      SELECT * FROM buses
-      WHERE LOWER(fromCity) = LOWER(?)
-        AND LOWER(toCity) = LOWER(?)
-      ORDER BY time ASC
-      ''',
-      [from, to],
-    );
+    final result = await db.rawQuery('SELECT DISTINCT fromCity FROM buses ORDER BY fromCity COLLATE NOCASE');
+    return result.map((row) => row['fromCity'] as String).where((city) => city.isNotEmpty).toList();
   }
 
   // ============================================================
-  // GET BOOKED SEATS (WITH GENDER)
+  // NEW: GET ALL UNIQUE TO CITIES
+  // ============================================================
+  Future<List<String>> getAllToCities() async {
+    final db = await database;
+    final result = await db.rawQuery('SELECT DISTINCT toCity FROM buses ORDER BY toCity COLLATE NOCASE');
+    return result.map((row) => row['toCity'] as String).where((city) => city.isNotEmpty).toList();
+  }
+
+  // ============================================================
+  // UPDATED: SEARCH BUSES WITH OPTIONAL BUS TYPE FILTER
+  // ============================================================
+  Future<List<Map<String, dynamic>>> getBusesByRouteAndType(
+      String from, String to, String? busClass) async {
+    final db = await database;
+
+    String query = '''
+      SELECT * FROM buses
+      WHERE LOWER(fromCity) = LOWER(?)
+        AND LOWER(toCity) = LOWER(?)
+    ''';
+
+    List<dynamic> args = [from, to];
+
+    if (busClass != null && busClass.isNotEmpty) {
+      query += ' AND busClass = ?';
+      args.add(busClass);
+    }
+
+    query += ' ORDER BY time ASC';
+
+    return await db.rawQuery(query, args);
+  }
+
+  // ============================================================
+  // OLD: KEEP ORIGINAL FOR BACKWARD COMPATIBILITY
+  // ============================================================
+  Future<List<Map<String, dynamic>>> getBusesByRoute(String from, String to) async {
+    return await getBusesByRouteAndType(from, to, null);
+  }
+
+  // ============================================================
+  // GET BOOKED SEATS (No change)
   // ============================================================
   Future<List<Map<String, dynamic>>> getBookedSeatsWithGender(int busId) async {
     final db = await database;
-
     return await db.query(
       'bookings',
       columns: ['seatNumber', 'gender'],
@@ -355,7 +424,7 @@ class DBHelper {
   }
 
   // ============================================================
-  // BOOK SEATS
+  // BOOK SEATS (No change)
   // ============================================================
   Future<void> bookSeats({
     required int busId,
@@ -365,7 +434,6 @@ class DBHelper {
     int userId = 0,
   }) async {
     final db = await database;
-
     Batch batch = db.batch();
 
     for (String seat in seats) {
@@ -382,9 +450,11 @@ class DBHelper {
     await batch.commit(noResult: true);
   }
 
+  // ============================================================
+  // REMAINING FUNCTIONS (No change)
+  // ============================================================
   Future<List<Map<String, dynamic>>> getUserBookings(int userId) async {
     final db = await database;
-
     return await db.rawQuery('''
       SELECT 
         bk.id AS bookingId,
@@ -412,7 +482,6 @@ class DBHelper {
 
   Future<bool> cancelBooking(int bookingId, int userId) async {
     final db = await database;
-
     final check = await db.query(
       'bookings',
       where: 'id = ? AND userId = ? AND status = ?',
@@ -425,9 +494,6 @@ class DBHelper {
     return true;
   }
 
-  // ============================================================
-  // PAYMENTS
-  // ============================================================
   Future<int> insertPayment({
     required int busId,
     required List<int> seats,
@@ -441,7 +507,6 @@ class DBHelper {
     String? passengerPhone,
   }) async {
     final db = await database;
-
     return await db.insert("payments", {
       "busId": busId,
       "seats": seats.join(","),
@@ -464,16 +529,11 @@ class DBHelper {
   Future<Map<String, dynamic>?> getPaymentById(int id) async {
     final db = await database;
     final result = await db.query("payments", where: "id=?", whereArgs: [id]);
-
     return result.isNotEmpty ? result.first : null;
   }
 
-  // ============================================================
-  // FEEDBACK FUNCTIONS
-  // ============================================================
   Future<int> insertFeedback({required int userId, required String message}) async {
     final db = await database;
-
     return await db.insert('feedback', {
       "userId": userId,
       "message": message,
@@ -486,17 +546,12 @@ class DBHelper {
     return await db.query('feedback', orderBy: "id DESC");
   }
 
-  // Wrapper for admin screen
   Future<List<Map<String, dynamic>>> getAllFeedbacks() async {
     return await getFeedbacks();
   }
 
-  // ============================================================
-  // COMPLAIN FUNCTIONS
-  // ============================================================
   Future<int> insertComplain({required int userId, required String message}) async {
     final db = await database;
-
     return await db.insert('complain', {
       "userId": userId,
       "message": message,
@@ -509,7 +564,6 @@ class DBHelper {
     return await db.query('complain', orderBy: "id DESC");
   }
 
-  // Wrapper for admin screen
   Future<List<Map<String, dynamic>>> getAllComplains() async {
     return await getComplains();
   }
