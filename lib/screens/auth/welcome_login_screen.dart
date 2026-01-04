@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bus_ticket_system/database/db_helper.dart';
+// ignore: unused_import
 import 'package:bus_ticket_system/user/screens/my_tickets_screen.dart';
 
 class WelcomeLoginScreen extends StatefulWidget {
