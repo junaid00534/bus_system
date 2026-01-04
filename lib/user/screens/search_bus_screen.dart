@@ -1,7 +1,7 @@
-import 'package:bus_ticket_system/user/screens/available_buses_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_ticket_system/database/db_helper.dart';
 import 'package:bus_ticket_system/admin/models/bus_model.dart';
+import 'package:bus_ticket_system/user/screens/available_buses_screen.dart';
 
 class SearchBusScreen extends StatefulWidget {
   const SearchBusScreen({super.key});
@@ -43,11 +43,10 @@ class _SearchBusScreenState extends State<SearchBusScreen> {
     });
   }
 
-  // Open date picker and allow selection up to 30 days from today
+  // Open date picker and allow selection only for the next 10 days (today + 9 days ahead)
   Future<void> pickDate() async {
     DateTime today = DateTime.now();
-    DateTime lastAllowed =
-        today.add(const Duration(days: 30)); // Allow up to 30 days
+    DateTime lastAllowed = today.add(const Duration(days: 9)); // Only next 10 days total (today included)
 
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -137,8 +136,7 @@ class _SearchBusScreenState extends State<SearchBusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Replace with actual logged-in user ID
-    // (e.g., from Provider or SharedPreferences)
+    // Replace with actual logged-in user ID later
     final int currentUserId = 1;
 
     return Scaffold(
@@ -191,7 +189,7 @@ class _SearchBusScreenState extends State<SearchBusScreen> {
 
             const SizedBox(height: 16),
 
-            // Date picker field
+            // Date picker field - now limited to next 10 days only
             GestureDetector(
               onTap: pickDate,
               child: Container(
@@ -216,7 +214,7 @@ class _SearchBusScreenState extends State<SearchBusScreen> {
                     const SizedBox(width: 16),
                     Text(
                       dateController.text.isEmpty
-                          ? "Select Travel Date"
+                          ? "Select Travel Date (Next 10 days only)"
                           : dateController.text,
                       style: TextStyle(
                         fontSize: 16,

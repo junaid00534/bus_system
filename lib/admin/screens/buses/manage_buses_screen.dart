@@ -11,11 +11,16 @@ class ManageBusesScreen extends StatefulWidget {
 }
 
 class _ManageBusesScreenState extends State<ManageBusesScreen> {
+  // Currently selected date (defaults to today)
   DateTime selectedDate = DateTime.now();
+
+  // List of next 10 days for the date selector
   List<DateTime> next10Days = [];
+
+  // List of buses for the selected date
   List<BusModel> buses = [];
 
-  // ہر بس کے لیے live booked seats count
+  // Map to store booked seats count for each bus (busId → booked count)
   Map<int, int> bookedSeatsCount = {};
 
   @override
@@ -23,26 +28,37 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
     super.initState();
     _generateDates();
     _loadBuses();
+
+    // Optional: Clean old buses and their bookings on screen load
+    DBHelper.instance.cleanOldBusesAndBookings();
   }
 
+  // Generate list of next 10 days (today + next 9 days)
   void _generateDates() {
     next10Days = List.generate(10, (i) => DateTime.now().add(Duration(days: i)));
   }
 
+  // Load buses for the selected date and sort them by time (chronological order)
   Future<void> _loadBuses() async {
     final dateKey = _formatDate(selectedDate);
 
+    // Fetch buses from database for the selected date
     final list = await DBHelper.instance.getBusesByDate(dateKey);
 
-    final loadedBuses = list.map((e) => BusModel.fromMap(e)).toList();
+    // Convert raw maps to BusModel objects
+    List<BusModel> loadedBuses = list.map((e) => BusModel.fromMap(e)).toList();
 
-    // Booked seats count نکالیں
+    // Sort buses by departure time (earliest first)
+    loadedBuses.sort((a, b) => a.time.compareTo(b.time));
+
+    // Calculate booked seats count for each bus
     Map<int, int> tempCount = {};
     for (var bus in loadedBuses) {
       final bookedList = await DBHelper.instance.getBookedSeatsWithGender(bus.id!);
       tempCount[bus.id!] = bookedList.length;
     }
 
+    // Update state if widget is still mounted
     if (mounted) {
       setState(() {
         buses = loadedBuses;
@@ -51,17 +67,20 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
     }
   }
 
+  // Format DateTime to string in YYYY-MM-DD format (used as key in DB)
   String _formatDate(DateTime dt) {
     return '${dt.year.toString().padLeft(4, '0')}-'
         '${dt.month.toString().padLeft(2, '0')}-'
         '${dt.day.toString().padLeft(2, '0')}';
   }
 
+  // Get short day name (Sun, Mon, etc.)
   String _dayName(DateTime dt) {
     const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return names[dt.weekday % 7];
   }
 
+  // Get short month name (Jan, Feb, etc.)
   String _monthShort(DateTime d) {
     const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return m[d.month - 1];
@@ -74,16 +93,19 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
       appBar: AppBar(
         title: const Text('Manage Buses'),
         backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
       ),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
         child: const Icon(Icons.add),
         onPressed: () async {
+          // Navigate to add new bus screen
           await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const AddEditBusScreen()),
           );
+          // Refresh the list after adding a new bus
           await _loadBuses();
         },
       ),
@@ -169,14 +191,12 @@ class _ManageBusesScreenState extends State<ManageBusesScreen> {
     );
   }
 
-  // -------------------------------------------------------------------
-  //                           UPDATED BUS CARD WITH LIVE SEATS
-  // -------------------------------------------------------------------
+  // Individual bus card with live seats left information
   Widget _busCard(BusModel b) {
     final int booked = bookedSeatsCount[b.id!] ?? 0;
     final int seatsLeft = b.seats - booked;
 
-    // اگر سیٹیں ختم ہو گئیں تو رنگ سرخ کریں
+    // Change color to red if no seats left
     final Color seatsTextColor = seatsLeft <= 0 ? Colors.red : Colors.grey;
 
     return Card(
