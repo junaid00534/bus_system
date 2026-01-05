@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:screenshot/screenshot.dart';
-// ignore: unnecessary_import
-import 'package:image_picker/image_picker.dart';
+
 class ViewTicketScreen extends StatefulWidget {
   final Map<String, dynamic> ticketData;
 
@@ -32,27 +31,18 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
     final date = p["date"] ?? "";
     final paymentMethod = p["paymentMethod"] ?? "";
 
-    // helper to safely get bus properties whether bus is Map or object
-    dynamic busProp(String key) {
-      try {
-        if (bus == null) return "";
-        if (bus is Map) return bus[key] ?? "";
-        // try to access as object property using reflection-like access
-        final val = (bus as dynamic);
-        return val == null ? "" : val.toJson != null ? val.toJson()[key] ?? "" : (val as dynamic).toString();
-      } catch (e) {
-        try {
-          return (bus as dynamic).busNumber ?? "";
-        } catch (e) {
-          return "";
-        }
-      }
-    }
+    // Safely get bus properties
+    String busNumber = "";
+    String fromCity = "";
+    String toCity = "";
+    String time = "";
 
-    final busNumber = busProp('busNumber') ?? busProp('busNo') ?? busProp('bus_number') ?? '';
-    final fromCity = busProp('fromCity') ?? busProp('from') ?? '';
-    final toCity = busProp('toCity') ?? busProp('to') ?? '';
-    final time = busProp('time') ?? '';
+    if (bus is Map<String, dynamic>) {
+      busNumber = bus["busNumber"] ?? bus["busNo"] ?? bus["bus_number"] ?? "";
+      fromCity = bus["fromCity"] ?? bus["from"] ?? "";
+      toCity = bus["toCity"] ?? bus["to"] ?? "";
+      time = bus["time"] ?? "";
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -64,7 +54,6 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-
       body: Screenshot(
         controller: screenshotController,
         child: SingleChildScrollView(
@@ -82,7 +71,6 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
                 )
               ],
             ),
-
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -96,32 +84,24 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 const Text("Passenger Details",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const Divider(),
-
                 ticketRow("Name", passenger["name"] ?? ""),
                 ticketRow("CNIC", passenger["cnic"] ?? ""),
                 ticketRow("Phone", passenger["phone"] ?? ""),
                 ticketRow("Seat(s)", seats.join(", ")),
                 ticketRow("Payment", paymentMethod),
-
                 const SizedBox(height: 20),
-
                 const Text("Bus Details",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const Divider(),
-
-                ticketRow("Bus Number", busNumber.toString()),
-                ticketRow("Route", "${fromCity} → ${toCity}"),
-                ticketRow("Time", time.toString()),
-                ticketRow("Date", date.toString()),
-
+                ticketRow("Bus Number", busNumber),
+                ticketRow("Route", "$fromCity → $toCity"),
+                ticketRow("Time", time),
+                ticketRow("Date", date),
                 const SizedBox(height: 25),
-
                 SizedBox(
                   width: double.infinity,
                   height: 50,

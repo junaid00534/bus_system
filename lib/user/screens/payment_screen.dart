@@ -27,6 +27,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   TextEditingController accountController = TextEditingController();
   TextEditingController emailController = TextEditingController();
 
+  // 🔒 FIX FLAG
+  bool _isProcessing = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,7 +54,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           },
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -61,7 +63,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
               "Select Payment Method",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 15),
 
             _paymentCard("Easypaisa", Icons.account_balance_wallet),
@@ -73,7 +74,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
             if (selectedPayment != null) ...[
               Text(
                 "$selectedPayment Account Number",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
 
@@ -88,9 +90,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
               const Text(
                 "Email for Payment Confirmation",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w600),
               ),
-
               const SizedBox(height: 6),
 
               _inputField(
@@ -107,17 +109,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
+                // 🔒 BUTTON DISABLE
+                onPressed: _isProcessing ? null : _processPayment,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade700,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                onPressed: _processPayment,
-                child: const Text(
-                  "Confirm & Continue",
-                  style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
-                ),
+                child: _isProcessing
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : const Text(
+                        "Confirm & Continue",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -126,23 +137,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  // SAVE PAYMENT FUNCTION
+  // ================= FIXED PAYMENT FUNCTION =================
   Future<void> _processPayment() async {
+    if (_isProcessing) return;
+
+    setState(() {
+      _isProcessing = true;
+    });
+
     if (selectedPayment == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select a payment method")),
       );
+      setState(() => _isProcessing = false);
       return;
     }
 
-    if (accountController.text.isEmpty || emailController.text.isEmpty) {
+    if (accountController.text.isEmpty ||
+        emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Enter account number and email")),
       );
+      setState(() => _isProcessing = false);
       return;
     }
 
-    // SAVE PAYMENT IN DB
     await DBHelper.instance.insertPayment(
       busId: widget.bus.id!,
       seats: widget.selectedSeats,
@@ -152,7 +171,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       accountNumber: accountController.text.trim(),
     );
 
-    // GO TO TICKET SCREEN
+    if (!mounted) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -169,7 +189,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  // ------------------- UI COMPONENTS ------------------------
+  // ================= UI COMPONENTS =================
   Widget _paymentCard(String title, IconData icon) {
     bool active = selectedPayment == title;
 
@@ -193,24 +213,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ],
         ),
-
         child: Row(
           children: [
-            Icon(icon, color: active ? Colors.green : Colors.grey.shade600),
+            Icon(icon,
+                color: active ? Colors.green : Colors.grey.shade600),
             const SizedBox(width: 12),
             Text(
               title,
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                color: active ? Colors.green.shade800 : Colors.black87,
+                fontWeight:
+                    active ? FontWeight.bold : FontWeight.normal,
+                color: active
+                    ? Colors.green.shade800
+                    : Colors.black87,
               ),
             ),
             const Spacer(),
             Radio(
               value: title,
               groupValue: selectedPayment,
-              onChanged: (value) => setState(() => selectedPayment = value),
+              onChanged: (value) =>
+                  setState(() => selectedPayment = value),
               activeColor: Colors.green,
             ),
           ],
@@ -230,7 +254,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(color: Colors.grey.shade300, blurRadius: 8, offset: const Offset(0, 3)),
+          BoxShadow(
+              color: Colors.grey.shade300,
+              blurRadius: 8,
+              offset: const Offset(0, 3)),
         ],
       ),
       child: TextField(
@@ -240,7 +267,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
           prefixIcon: Icon(icon, color: Colors.green),
           hintText: hint,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         ),
       ),
     );

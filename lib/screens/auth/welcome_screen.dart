@@ -10,20 +10,18 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _busAnimation;
+  late Animation<double> _busMove;
 
   @override
   void initState() {
     super.initState();
 
-    // Animation controller for infinite smooth movement
     _controller = AnimationController(
-      duration: const Duration(seconds: 12),
       vsync: this,
-    )..repeat(); // Infinite loop
+      duration: const Duration(seconds: 10),
+    )..repeat();
 
-    // Bus moves from left (-1.0) to right (1.0) and repeats
-    _busAnimation = Tween<double>(begin: -1.2, end: 1.2).animate(
+    _busMove = Tween<double>(begin: -1.2, end: 1.2).animate(
       CurvedAnimation(parent: _controller, curve: Curves.linear),
     );
   }
@@ -38,149 +36,138 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF1E3C72), // Deep blue
-              Color(0xFF2A5298),
-              Color(0xFF00C2FF), // Bright cyan
+              Color(0xFF6A11CB),
+              Color(0xFF2575FC),
+              Color(0xFF00D2FF),
+              Color(0xFF38EF7D),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            stops: [0.0, 0.5, 1.0],
           ),
         ),
-        child: Stack(
-          children: [
-            // Subtle animated road lines (moving background effect)
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                return Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Transform.translate(
-                    offset: Offset(0, _controller.value * 200 - 100),
-                    child: Opacity(
-                      opacity: 0.15,
-                      child: Image.asset(
-                        "assets/images/bus_welcome.png", // Optional: add dashed road lines asset for extra effect
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            // Moving Bus Animation
-            AnimatedBuilder(
-              animation: _busAnimation,
-              builder: (context, child) {
-                return Align(
-                  alignment: Alignment.bottomCenter,
-                  child: FractionalTranslation(
-                    translation: Offset(_busAnimation.value, 0.25), // Moves horizontally
-                    child: Transform.scale(
-                      scale: 1.1,
-                      child: Image.asset(
-                        "assets/images/bus_welcome.png",
-                        width: 320,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            // Text Content with Fade-in Animation
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // ===== TOP TEXT =====
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 80),
-                    FadeTransition(
-                      opacity: _controller.drive(Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: const Interval(0.0, 0.4)))),
+                    const SizedBox(height: 70),
+
+                    const Text(
+                      "Welcome to",
+                      style: TextStyle(
+                        fontSize: 28,
+                        color: Colors.white70,
+                        letterSpacing: 1.3,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    const Text(
+                      "JUNAID MOVERS",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 42,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 3,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
+                            color: Colors.black26,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    const Text(
+                      "Fast • Comfortable • Reliable\nBook Your Journey Now",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white70,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ===== MOVING BUS =====
+              AnimatedBuilder(
+                animation: _busMove,
+                builder: (context, child) {
+                  return Align(
+                    alignment: Alignment.bottomCenter,
+                    child: FractionalTranslation(
+                      translation: Offset(_busMove.value, 0),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 140),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 16,
+                              offset: Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          "assets/images/bus_welcome.png",
+                          width: 300,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // ===== BUTTON =====
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(28, 0, 28, 60),
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.35,
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.deepPurple,
+                        elevation: 12,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, "/login");
+                      },
                       child: const Text(
-                        "Welcome to",
+                        "Get Started",
                         style: TextStyle(
-                          fontSize: 30,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w400,
+                          fontSize: 21,
+                          fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    FadeTransition(
-                      opacity: _controller.drive(Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: const Interval(0.2, 0.6)))),
-                      child: const Text(
-                        "JUNAID MOVERS",
-                        style: TextStyle(
-                          fontSize: 44,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 3,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(0, 4),
-                              blurRadius: 10,
-                              color: Colors.black26,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    FadeTransition(
-                      opacity: _controller.drive(Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: const Interval(0.4, 0.8)))),
-                      child: const Text(
-                        "Travel with Comfort & Style\nBook Your Journey Now!",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white70,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    ScaleTransition(
-                      scale: _controller.drive(Tween(begin: 0.9, end: 1.0).chain(CurveTween(curve: const Interval(0.7, 1.0, curve: Curves.easeOut)))),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF1E3C72),
-                          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 12,
-                          shadowColor: Colors.black38,
-                        ),
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, "/login");
-                        },
-                        child: const Text(
-                          "Get Started",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 60),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

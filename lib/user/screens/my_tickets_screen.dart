@@ -128,27 +128,42 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
                                       Padding(
                                         padding: const EdgeInsets.only(top: 12),
                                         child: SizedBox(
-                                          width: double.infinity,
+                                          width: 150, // smaller width
+                                          height: 40, // smaller height
                                           child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.red, // red button
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
                                             onPressed: () => showDialog(
                                               context: context,
                                               builder: (_) => AlertDialog(
                                                 title: const Text("Cancel Ticket?"),
                                                 content: const Text("This action cannot be undone."),
                                                 actions: [
-                                                  TextButton(onPressed: () => Navigator.pop(context), child: const Text("No")),
+                                                  TextButton(
+                                                      onPressed: () => Navigator.pop(context),
+                                                      child: const Text("No")),
                                                   TextButton(
                                                     onPressed: () {
                                                       Navigator.pop(context);
                                                       cancelTicket(t['bookingId']);
                                                     },
-                                                    child: const Text("Yes, Cancel", style: TextStyle(color: Colors.red)),
+                                                    child: const Text(
+                                                      "Yes, Cancel",
+                                                      style: TextStyle(color: Colors.red),
+                                                    ),
                                                   ),
                                                 ],
                                               ),
                                             ),
-                                            child: const Text("Cancel Ticket", style: TextStyle(color: Colors.white)),
+                                            child: const Text(
+                                              "Cancel Ticket",
+                                              style: TextStyle(
+                                                  color: Colors.white, fontWeight: FontWeight.bold),
+                                            ),
                                           ),
                                         ),
                                       ),
