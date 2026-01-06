@@ -1,4 +1,3 @@
-// lib/user/screens/view_ticket_screen.dart
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -28,20 +27,39 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
     final passenger = p["passenger"] ?? {};
     final bus = p["bus"] ?? {};
     final List seats = p["seats"] ?? [];
-    final date = p["date"] ?? "";
-    final paymentMethod = p["paymentMethod"] ?? "";
+    final String paymentMethod = p["paymentMethod"] ?? "";
 
-    // Safely get bus properties
+    // ✅ FIXED DATA MAPPING (ROBUST)
+    final String fromCity =
+        p["fromCity"] ??
+        p["from"] ??
+        p["sourceCity"] ??
+        "";
+
+    final String toCity =
+        p["toCity"] ??
+        p["to"] ??
+        p["destinationCity"] ??
+        "";
+
+    final String time =
+        p["time"] ??
+        p["departureTime"] ??
+        "";
+
+    final String date =
+        p["travelDate"] ??
+        p["date"] ??
+        "";
+
+    // Bus number safe read
     String busNumber = "";
-    String fromCity = "";
-    String toCity = "";
-    String time = "";
-
     if (bus is Map<String, dynamic>) {
-      busNumber = bus["busNumber"] ?? bus["busNo"] ?? bus["bus_number"] ?? "";
-      fromCity = bus["fromCity"] ?? bus["from"] ?? "";
-      toCity = bus["toCity"] ?? bus["to"] ?? "";
-      time = bus["time"] ?? "";
+      busNumber =
+          bus["busNumber"] ??
+          bus["busNo"] ??
+          bus["bus_number"] ??
+          "";
     }
 
     return Scaffold(
@@ -84,24 +102,36 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
-                const Text("Passenger Details",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+
+                const Text(
+                  "Passenger Details",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 const Divider(),
+
                 ticketRow("Name", passenger["name"] ?? ""),
                 ticketRow("CNIC", passenger["cnic"] ?? ""),
                 ticketRow("Phone", passenger["phone"] ?? ""),
                 ticketRow("Seat(s)", seats.join(", ")),
                 ticketRow("Payment", paymentMethod),
+
                 const SizedBox(height: 20),
-                const Text("Bus Details",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+
+                const Text(
+                  "Bus Details",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 const Divider(),
+
                 ticketRow("Bus Number", busNumber),
-                ticketRow("Route", "$fromCity → $toCity"),
+                ticketRow("Route", "$fromCity → $toCity"), // ✅ FIXED
                 ticketRow("Time", time),
                 ticketRow("Date", date),
+
                 const SizedBox(height: 25),
+
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -136,11 +166,19 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, color: Colors.black54)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          ),
           Flexible(
-            child: Text(value.toString(),
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            child: Text(
+              value.toString(),
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -155,6 +193,9 @@ class _ViewTicketScreenState extends State<ViewTicketScreen> {
     final imagePath = File("${directory.path}/ticket.png");
 
     await imagePath.writeAsBytes(image);
-    await Share.shareXFiles([XFile(imagePath.path)], text: "Here is your bus ticket");
+    await Share.shareXFiles(
+      [XFile(imagePath.path)],
+      text: "Here is your bus ticket",
+    );
   }
 }
